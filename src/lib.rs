@@ -22,7 +22,7 @@ impl<Index, Value> TaggedVec<Index, Value> {
         Self::default()
     }
 
-    /// Inserts the given value at the back of the `Vec`, returning its index.
+    /// Inserts the given value at the back of the `TaggedVec`, returning its index.
     pub fn push(&mut self, value: Value) -> Index
     where
         Index: From<usize>,
@@ -32,7 +32,7 @@ impl<Index, Value> TaggedVec<Index, Value> {
         index
     }
 
-    /// Removes the value at the back of the `Vec` and returns it with its index.
+    /// Removes the value at the back of the `TaggedVec` and returns it with its index.
     pub fn pop(&mut self) -> Option<(Index, Value)>
     where
         Index: From<usize>,
@@ -42,5 +42,15 @@ impl<Index, Value> TaggedVec<Index, Value> {
         } else {
             None
         }
+    }
+
+    /// Returns an iterator over references to the elements of the `TaggedVec`.
+    pub fn iter(&self) -> std::slice::Iter<'_, Value> {
+        self.vec.iter()
+    }
+
+    /// Returns an iterator over mutable references to the elements of the `TaggedVec`.
+    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, Value> {
+        self.vec.iter_mut()
     }
 }
