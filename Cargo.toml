@@ -1,6 +1,10 @@
 [package]
 name = "tagged-vec"
+description = "A Vec which can be indexed by one specific type"
+authors = ["Sebastian Schmidt <sebastian.schmidt@helsinki.fi>"]
 version = "0.1.0"
+license = "BSD-2-Clause"
 edition = "2024"
+rust-version = "1.85.1"
 
 [dependencies]
