@@ -44,13 +44,43 @@ impl<Index, Value> TaggedVec<Index, Value> {
         }
     }
 
-    /// Returns an iterator over references to the elements of the `TaggedVec`.
-    pub fn iter(&self) -> std::slice::Iter<'_, Value> {
+    /// Returns an iterator over references to the entries of the `TaggedVec`.
+    pub fn iter(&self) -> impl Iterator<Item = (Index, &Value)>
+    where
+        Index: From<usize>,
+    {
+        self.vec
+            .iter()
+            .enumerate()
+            .map(|(index, value)| (index.into(), value))
+    }
+
+    /// Returns an iterator over mutable references to the entries of the `TaggedVec`.
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (Index, &mut Value)>
+    where
+        Index: From<usize>,
+    {
+        self.vec
+            .iter_mut()
+            .enumerate()
+            .map(|(index, value)| (index.into(), value))
+    }
+
+    /// Returns an iterator over references to the values of the `TaggedVec`.
+    pub fn iter_values(&self) -> std::slice::Iter<'_, Value> {
         self.vec.iter()
     }
 
-    /// Returns an iterator over mutable references to the elements of the `TaggedVec`.
-    pub fn iter_mut(&mut self) -> std::slice::IterMut<'_, Value> {
+    /// Returns an iterator over mutable references to the values of the `TaggedVec`.
+    pub fn iter_values_mut(&mut self) -> std::slice::IterMut<'_, Value> {
         self.vec.iter_mut()
+    }
+
+    /// Returns an iterator over the indices of the `TaggedVec`.
+    pub fn iter_indices(&self) -> impl Iterator<Item = Index>
+    where
+        Index: From<usize>,
+    {
+        (0..self.vec.len()).map(Into::into)
     }
 }
