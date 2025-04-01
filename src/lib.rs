@@ -22,6 +22,16 @@ impl<Index, Value> TaggedVec<Index, Value> {
         Self::default()
     }
 
+    /// Returns the number of elements in the `TaggedVec`.
+    pub fn len(&self) -> usize {
+        self.vec.len()
+    }
+
+    /// Returns `true` if the `TaggedVec` contains no elements.
+    pub fn is_empty(&self) -> bool {
+        self.vec.is_empty()
+    }
+
     /// Inserts the given value at the back of the `TaggedVec`, returning its index.
     pub fn push(&mut self, value: Value) -> Index
     where
