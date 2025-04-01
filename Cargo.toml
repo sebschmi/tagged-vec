@@ -2,6 +2,7 @@
 name = "tagged-vec"
 description = "A Vec which can be indexed by one specific type"
 authors = ["Sebastian Schmidt <sebastian.schmidt@helsinki.fi>"]
+repository = "https://github.com/sebschmi/tagged-vec"
 version = "0.1.0"
 license = "BSD-2-Clause"
 edition = "2024"
