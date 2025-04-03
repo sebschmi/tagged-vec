@@ -4,8 +4,11 @@
 
 #![warn(missing_docs)]
 
-use std::marker::PhantomData;
+use std::{marker::PhantomData, ops::RangeBounds};
 
+use mapped_range_bounds::MappedRangeBounds;
+
+mod mapped_range_bounds;
 mod trait_impls;
 
 /// A [`Vec`] wrapper that allows indexing only via the given `Index` type.
@@ -52,6 +55,34 @@ impl<Index, Value> TaggedVec<Index, Value> {
         } else {
             None
         }
+    }
+
+    /// Inserts the given `value` at position `index`, shifting all existing values in range `index..` one position to the right.
+    pub fn insert(&mut self, index: Index, value: Value)
+    where
+        Index: Into<usize>,
+    {
+        self.vec.insert(index.into(), value);
+    }
+
+    /// See [`Vec::splice`].
+    pub fn splice<I: IntoIterator<Item = Value>>(
+        &mut self,
+        range: impl RangeBounds<Index>,
+        replace_with: I,
+    ) -> std::vec::Splice<'_, I::IntoIter>
+    where
+        usize: for<'a> From<&'a Index>,
+    {
+        self.vec.splice(MappedRangeBounds::new(range), replace_with)
+    }
+
+    /// Retains only the values specified by the predicate.
+    ///
+    /// In other words, remove all values `v` for which `f(&v)` returns `false`.
+    /// This method operates in place, visiting each value exactly once in the original order, and preserves the order of the retained values.
+    pub fn retain(&mut self, f: impl FnMut(&Value) -> bool) {
+        self.vec.retain(f);
     }
 
     /// Returns an iterator over references to the entries of the `TaggedVec`.
