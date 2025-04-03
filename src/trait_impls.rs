@@ -2,6 +2,12 @@ use std::{fmt::Debug, marker::PhantomData};
 
 use crate::TaggedVec;
 
+impl<Index, Value> Extend<Value> for TaggedVec<Index, Value> {
+    fn extend<T: IntoIterator<Item = Value>>(&mut self, iter: T) {
+        self.vec.extend(iter);
+    }
+}
+
 impl<Index, Value> FromIterator<Value> for TaggedVec<Index, Value> {
     fn from_iter<T: IntoIterator<Item = Value>>(iter: T) -> Self {
         Self {
