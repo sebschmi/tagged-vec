@@ -120,7 +120,7 @@ impl<Index, Value> TaggedVec<Index, Value> {
     }
 
     /// Returns an iterator over references to the entries of the `TaggedVec`.
-    pub fn iter(&self) -> impl Iterator<Item = (Index, &Value)>
+    pub fn iter(&self) -> impl DoubleEndedIterator<Item = (Index, &Value)> + ExactSizeIterator
     where
         Index: From<usize>,
     {
@@ -131,7 +131,9 @@ impl<Index, Value> TaggedVec<Index, Value> {
     }
 
     /// Returns an iterator over mutable references to the entries of the `TaggedVec`.
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = (Index, &mut Value)>
+    pub fn iter_mut(
+        &mut self,
+    ) -> impl DoubleEndedIterator<Item = (Index, &mut Value)> + ExactSizeIterator
     where
         Index: From<usize>,
     {
@@ -152,7 +154,7 @@ impl<Index, Value> TaggedVec<Index, Value> {
     }
 
     /// Returns an iterator over the indices of the `TaggedVec`.
-    pub fn iter_indices(&self) -> impl Iterator<Item = Index>
+    pub fn iter_indices(&self) -> impl DoubleEndedIterator<Item = Index> + ExactSizeIterator
     where
         Index: From<usize>,
     {
