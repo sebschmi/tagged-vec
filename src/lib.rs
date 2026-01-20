@@ -45,6 +45,19 @@ impl<Index, Value> TaggedVec<Index, Value> {
         index
     }
 
+    /// Insert a single value into the `TaggedVec` by constructing it in place.
+    ///
+    /// This method allows to create the value while already knowing its index.
+    /// Returns the index.
+    pub fn push_in_place(&mut self, value: impl FnOnce(Index) -> Value) -> Index
+    where
+        Index: From<usize>,
+    {
+        let index = self.vec.len();
+        self.vec.push(value(index.into()));
+        index.into()
+    }
+
     /// Removes the value at the back of the `TaggedVec` and returns it with its index.
     pub fn pop(&mut self) -> Option<(Index, Value)>
     where
