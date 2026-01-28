@@ -173,6 +173,11 @@ impl<Index, Value> TaggedVec<Index, Value> {
     {
         (0..self.vec.len()).map(Into::into)
     }
+
+    /// Consumes the `TaggedVec`, returning an iterator over the values.
+    pub fn into_values_iter(self) -> std::vec::IntoIter<Value> {
+        self.vec.into_iter()
+    }
 }
 
 #[cfg(test)]

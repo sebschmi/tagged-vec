@@ -8,6 +8,10 @@ impl<Index, Value> Extend<Value> for TaggedVec<Index, Value> {
     }
 }
 
+/////////////////////////////////////////
+////// CONVERSIONS //////////////////////
+/////////////////////////////////////////
+
 impl<Index, Value> FromIterator<Value> for TaggedVec<Index, Value> {
     fn from_iter<T: IntoIterator<Item = Value>>(iter: T) -> Self {
         Self {
@@ -17,33 +21,67 @@ impl<Index, Value> FromIterator<Value> for TaggedVec<Index, Value> {
     }
 }
 
-impl<Index, Value> IntoIterator for TaggedVec<Index, Value> {
-    type Item = Value;
-
-    type IntoIter = <Vec<Value> as IntoIterator>::IntoIter;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.vec.into_iter()
+impl<Index: From<usize> + Eq + Debug, Value> FromIterator<(Index, Value)>
+    for TaggedVec<Index, Value>
+{
+    fn from_iter<T: IntoIterator<Item = (Index, Value)>>(iter: T) -> Self {
+        Self {
+            index_type: PhantomData,
+            vec: FromIterator::from_iter(iter.into_iter().enumerate().map(
+                |(expected_index, (actual_index, value))| {
+                    assert_eq!(Index::from(expected_index), actual_index);
+                    value
+                },
+            )),
+        }
     }
 }
 
-impl<'a, Index, Value> IntoIterator for &'a TaggedVec<Index, Value> {
-    type Item = &'a Value;
+impl<Index: From<usize>, Value> IntoIterator for TaggedVec<Index, Value> {
+    type Item = (Index, Value);
 
-    type IntoIter = <&'a Vec<Value> as IntoIterator>::IntoIter;
+    type IntoIter = std::iter::Map<
+        std::iter::Enumerate<<Vec<Value> as IntoIterator>::IntoIter>,
+        fn((usize, Value)) -> (Index, Value),
+    >;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.vec.iter()
+        self.vec
+            .into_iter()
+            .enumerate()
+            .map(|(index, value)| (index.into(), value))
     }
 }
 
-impl<'a, Index, Value> IntoIterator for &'a mut TaggedVec<Index, Value> {
-    type Item = &'a mut Value;
+impl<'a, Index: From<usize>, Value> IntoIterator for &'a TaggedVec<Index, Value> {
+    type Item = (Index, &'a Value);
 
-    type IntoIter = <&'a mut Vec<Value> as IntoIterator>::IntoIter;
+    type IntoIter = std::iter::Map<
+        std::iter::Enumerate<<&'a Vec<Value> as IntoIterator>::IntoIter>,
+        fn((usize, &'a Value)) -> (Index, &'a Value),
+    >;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.vec.iter_mut()
+        self.vec
+            .iter()
+            .enumerate()
+            .map(|(index, value)| (index.into(), value))
+    }
+}
+
+impl<'a, Index: From<usize>, Value> IntoIterator for &'a mut TaggedVec<Index, Value> {
+    type Item = (Index, &'a mut Value);
+
+    type IntoIter = std::iter::Map<
+        std::iter::Enumerate<<&'a mut Vec<Value> as IntoIterator>::IntoIter>,
+        fn((usize, &'a mut Value)) -> (Index, &'a mut Value),
+    >;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.vec
+            .iter_mut()
+            .enumerate()
+            .map(|(index, value)| (index.into(), value))
     }
 }
 
@@ -61,6 +99,10 @@ impl<Index, Value> From<TaggedVec<Index, Value>> for Vec<Value> {
         value.vec
     }
 }
+
+/////////////////////////////////////////
+////// STANDARD TRAITS //////////////////
+/////////////////////////////////////////
 
 impl<Index, Value: Debug> Debug for TaggedVec<Index, Value> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
