@@ -25,6 +25,14 @@ impl<Index, Value> TaggedVec<Index, Value> {
         Self::default()
     }
 
+    /// Creates a new empty `TaggedVec` with at least the specified capacity.
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            index_type: PhantomData,
+            vec: Vec::with_capacity(capacity),
+        }
+    }
+
     /// Returns the number of elements in the `TaggedVec`.
     pub fn len(&self) -> usize {
         self.vec.len()
@@ -33,6 +41,11 @@ impl<Index, Value> TaggedVec<Index, Value> {
     /// Returns `true` if the `TaggedVec` contains no elements.
     pub fn is_empty(&self) -> bool {
         self.vec.is_empty()
+    }
+
+    /// Returns the total number of elements the `TaggedVec` can hold without reallocating.
+    pub fn capacity(&self) -> usize {
+        self.vec.capacity()
     }
 
     /// Inserts the given value at the back of the `TaggedVec`, returning its index.
