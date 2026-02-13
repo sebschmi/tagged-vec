@@ -48,6 +48,11 @@ impl<Index, Value> TaggedVec<Index, Value> {
         self.vec.capacity()
     }
 
+    /// Returns the untagged slice underlying this `TaggedVec`.
+    pub fn as_untagged_slice(&self) -> &[Value] {
+        &self.vec
+    }
+
     /// Inserts the given value at the back of the `TaggedVec`, returning its index.
     pub fn push(&mut self, value: Value) -> Index
     where
