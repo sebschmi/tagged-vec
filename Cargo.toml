@@ -8,4 +8,7 @@ license = "BSD-2-Clause"
 edition = "2024"
 rust-version = "1.85.1"
 
+[features]
+binary-io = []
+
 [dependencies]

@@ -8,6 +8,8 @@ use std::{marker::PhantomData, ops::RangeBounds};
 
 use mapped_range_bounds::MappedRangeBounds;
 
+#[cfg(feature = "binary-io")]
+mod binary_io;
 mod mapped_range_bounds;
 mod trait_impls;
 
