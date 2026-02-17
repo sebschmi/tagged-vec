@@ -157,6 +157,14 @@ impl<Index, Value> TaggedVec<Index, Value> {
         assert!(indices.next().is_none());
     }
 
+    /// Returns a reference to the value at the given index, or `None` if the index is out of bounds.
+    pub fn get(&self, index: Index) -> Option<&Value>
+    where
+        Index: Into<usize>,
+    {
+        self.vec.get(index.into())
+    }
+
     /// Returns an iterator over references to the entries of the `TaggedVec`.
     pub fn iter(&self) -> impl DoubleEndedIterator<Item = (Index, &Value)> + ExactSizeIterator
     where
