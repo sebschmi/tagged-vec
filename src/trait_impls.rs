@@ -1,4 +1,4 @@
-use std::{fmt::Debug, marker::PhantomData};
+use std::{fmt::Debug, hash::Hash, marker::PhantomData};
 
 use crate::TaggedVec;
 
@@ -145,6 +145,12 @@ impl<Index, Value: PartialOrd> PartialOrd for TaggedVec<Index, Value> {
 impl<Index, Value: Ord> Ord for TaggedVec<Index, Value> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.vec.cmp(&other.vec)
+    }
+}
+
+impl<Index, Value: Hash> Hash for TaggedVec<Index, Value> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.vec.hash(state);
     }
 }
 
