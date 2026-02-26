@@ -37,54 +37,6 @@ impl<Index: From<usize> + Eq + Debug, Value> FromIterator<(Index, Value)>
     }
 }
 
-impl<Index: From<usize>, Value> IntoIterator for TaggedVec<Index, Value> {
-    type Item = (Index, Value);
-
-    type IntoIter = std::iter::Map<
-        std::iter::Enumerate<<Vec<Value> as IntoIterator>::IntoIter>,
-        fn((usize, Value)) -> (Index, Value),
-    >;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.vec
-            .into_iter()
-            .enumerate()
-            .map(|(index, value)| (index.into(), value))
-    }
-}
-
-impl<'a, Index: From<usize>, Value> IntoIterator for &'a TaggedVec<Index, Value> {
-    type Item = (Index, &'a Value);
-
-    type IntoIter = std::iter::Map<
-        std::iter::Enumerate<<&'a Vec<Value> as IntoIterator>::IntoIter>,
-        fn((usize, &'a Value)) -> (Index, &'a Value),
-    >;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.vec
-            .iter()
-            .enumerate()
-            .map(|(index, value)| (index.into(), value))
-    }
-}
-
-impl<'a, Index: From<usize>, Value> IntoIterator for &'a mut TaggedVec<Index, Value> {
-    type Item = (Index, &'a mut Value);
-
-    type IntoIter = std::iter::Map<
-        std::iter::Enumerate<<&'a mut Vec<Value> as IntoIterator>::IntoIter>,
-        fn((usize, &'a mut Value)) -> (Index, &'a mut Value),
-    >;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.vec
-            .iter_mut()
-            .enumerate()
-            .map(|(index, value)| (index.into(), value))
-    }
-}
-
 impl<Index, Value> From<Vec<Value>> for TaggedVec<Index, Value> {
     fn from(value: Vec<Value>) -> Self {
         Self {

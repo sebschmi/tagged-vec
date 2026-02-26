@@ -4,13 +4,18 @@
 
 #![warn(missing_docs)]
 
-use std::{marker::PhantomData, ops::RangeBounds};
+use std::{
+    marker::PhantomData,
+    ops::{Bound, RangeBounds},
+};
 
 use mapped_range_bounds::MappedRangeBounds;
 
 #[cfg(feature = "binary-io")]
 mod binary_io;
 mod mapped_range_bounds;
+#[cfg(test)]
+mod tests;
 mod trait_impls;
 
 /// A [`Vec`] wrapper that allows indexing only via the given `Index` type.
@@ -110,7 +115,8 @@ impl<Index, Value> TaggedVec<Index, Value> {
         replace_with: I,
     ) -> std::vec::Splice<'_, I::IntoIter>
     where
-        usize: for<'a> From<&'a Index>,
+        usize: From<Index>,
+        Index: Copy,
     {
         self.vec.splice(MappedRangeBounds::new(range), replace_with)
     }
@@ -166,26 +172,66 @@ impl<Index, Value> TaggedVec<Index, Value> {
     }
 
     /// Returns an iterator over references to the entries of the `TaggedVec`.
-    pub fn iter(&self) -> impl DoubleEndedIterator<Item = (Index, &Value)> + ExactSizeIterator
+    ///
+    /// The `range` specifies which subset of the entries to iterate over.
+    /// Iterating over a partial range with this argument is more efficient than iterating over the whole vector and skipping the unwanted entries, because the returned iterator does not support the skip optimisation.
+    pub fn iter(
+        &self,
+        range: impl RangeBounds<Index>,
+    ) -> impl DoubleEndedIterator<Item = (Index, &Value)> + ExactSizeIterator
     where
-        Index: From<usize>,
+        Index: From<usize> + Copy,
+        usize: From<Index>,
     {
+        let range = MappedRangeBounds::new(range);
+        let start_index_inclusive = match range.start_bound() {
+            Bound::Included(index) => *index,
+            Bound::Excluded(index) => (*index).checked_add(1).expect("start index overflow"),
+            Bound::Unbounded => 0,
+        };
+        let end_index_exclusive = match range.end_bound() {
+            Bound::Included(index) => (*index).checked_add(1).expect("end index overflow"),
+            Bound::Excluded(index) => *index,
+            Bound::Unbounded => self.vec.len(),
+        };
+
         self.vec
             .iter()
             .enumerate()
+            .skip(start_index_inclusive)
+            .take(end_index_exclusive - start_index_inclusive)
             .map(|(index, value)| (index.into(), value))
     }
 
     /// Returns an iterator over mutable references to the entries of the `TaggedVec`.
+    ///
+    /// The `range` specifies which subset of the entries to iterate over.
+    /// Iterating over a partial range with this argument is more efficient than iterating over the whole vector and skipping the unwanted entries, because the returned iterator does not support the skip optimisation.
     pub fn iter_mut(
         &mut self,
+        range: impl RangeBounds<Index>,
     ) -> impl DoubleEndedIterator<Item = (Index, &mut Value)> + ExactSizeIterator
     where
-        Index: From<usize>,
+        Index: From<usize> + Copy,
+        usize: From<Index>,
     {
+        let range = MappedRangeBounds::new(range);
+        let start_index_inclusive = match range.start_bound() {
+            Bound::Included(index) => *index,
+            Bound::Excluded(index) => (*index).checked_add(1).expect("start index overflow"),
+            Bound::Unbounded => 0,
+        };
+        let end_index_exclusive = match range.end_bound() {
+            Bound::Included(index) => (*index).checked_add(1).expect("end index overflow"),
+            Bound::Excluded(index) => *index,
+            Bound::Unbounded => self.vec.len(),
+        };
+
         self.vec
             .iter_mut()
             .enumerate()
+            .skip(start_index_inclusive)
+            .take(end_index_exclusive - start_index_inclusive)
             .map(|(index, value)| (index.into(), value))
     }
 
@@ -200,35 +246,66 @@ impl<Index, Value> TaggedVec<Index, Value> {
     }
 
     /// Returns an iterator over the indices of the `TaggedVec`.
-    pub fn iter_indices(&self) -> impl DoubleEndedIterator<Item = Index> + ExactSizeIterator
+    ///
+    /// The `range` specifies which subset of the entries to iterate over.
+    /// Iterating over a partial range with this argument is more efficient than iterating over the whole vector and skipping the unwanted entries, because the returned iterator does not support the skip optimisation.
+    pub fn iter_indices(
+        &self,
+        range: impl RangeBounds<Index>,
+    ) -> impl DoubleEndedIterator<Item = Index> + ExactSizeIterator
     where
-        Index: From<usize>,
+        Index: From<usize> + Copy,
+        usize: From<Index>,
     {
-        (0..self.vec.len()).map(Into::into)
+        let range = MappedRangeBounds::new(range);
+        let start_index_inclusive = match range.start_bound() {
+            Bound::Included(index) => *index,
+            Bound::Excluded(index) => (*index).checked_add(1).expect("start index overflow"),
+            Bound::Unbounded => 0,
+        };
+        let end_index_exclusive = match range.end_bound() {
+            Bound::Included(index) => (*index).checked_add(1).expect("end index overflow"),
+            Bound::Excluded(index) => *index,
+            Bound::Unbounded => self.vec.len(),
+        };
+
+        (start_index_inclusive..end_index_exclusive).map(Into::into)
+    }
+
+    /// Consumes the `TaggedVec`, returning an iterator over the entries.
+    ///
+    /// The `range` specifies which subset of the entries to iterate over.
+    /// Iterating over a partial range with this argument is more efficient than iterating over the whole vector and skipping the unwanted entries, because the returned iterator does not support the skip optimisation.
+    pub fn into_iter(
+        self,
+        range: impl RangeBounds<Index>,
+    ) -> impl DoubleEndedIterator<Item = (Index, Value)> + ExactSizeIterator
+    where
+        Index: From<usize> + Copy,
+        usize: From<Index>,
+    {
+        let range = MappedRangeBounds::new(range);
+        let start_index_inclusive = match range.start_bound() {
+            Bound::Included(index) => *index,
+            Bound::Excluded(index) => (*index).checked_add(1).expect("start index overflow"),
+            Bound::Unbounded => 0,
+        };
+        let end_index_exclusive = match range.end_bound() {
+            Bound::Included(index) => (*index).checked_add(1).expect("end index overflow"),
+            Bound::Excluded(index) => *index,
+            Bound::Unbounded => self.vec.len(),
+        };
+
+        self.vec
+            .into_iter()
+            .enumerate()
+            .skip(start_index_inclusive)
+            .take(end_index_exclusive - start_index_inclusive)
+            .map(|(index, value)| (index.into(), value))
     }
 
     /// Consumes the `TaggedVec`, returning an iterator over the values.
     pub fn into_values_iter(self) -> std::vec::IntoIter<Value> {
         self.vec.into_iter()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::TaggedVec;
-
-    #[test]
-    fn delete_multi() {
-        let mut v = TaggedVec::<usize, _>::from_iter([0, 1, 2, 3, 4]);
-        v.remove_multi([0, 4]);
-        assert_eq!(v, vec![1, 2, 3].into());
-
-        let mut v = TaggedVec::<usize, _>::from_iter([0, 1, 2, 3, 4]);
-        v.remove_multi([0, 2, 4]);
-        assert_eq!(v, vec![1, 3].into());
-
-        let mut v = TaggedVec::<usize, _>::from_iter([0, 1, 2, 3, 4]);
-        v.remove_multi([1, 3]);
-        assert_eq!(v, vec![0, 2, 4].into());
     }
 }

@@ -8,17 +8,18 @@ pub struct MappedRangeBounds {
 impl MappedRangeBounds {
     pub fn new<Index>(range: impl RangeBounds<Index>) -> Self
     where
-        usize: for<'a> From<&'a Index>,
+        usize: From<Index>,
+        Index: Copy,
     {
         let start_bound = match range.start_bound() {
-            Bound::Included(index) => Bound::Included(index.into()),
-            Bound::Excluded(index) => Bound::Excluded(index.into()),
+            Bound::Included(index) => Bound::Included((*index).into()),
+            Bound::Excluded(index) => Bound::Excluded((*index).into()),
             Bound::Unbounded => Bound::Unbounded,
         };
 
         let end_bound = match range.end_bound() {
-            Bound::Included(index) => Bound::Included(index.into()),
-            Bound::Excluded(index) => Bound::Excluded(index.into()),
+            Bound::Included(index) => Bound::Included((*index).into()),
+            Bound::Excluded(index) => Bound::Excluded((*index).into()),
             Bound::Unbounded => Bound::Unbounded,
         };
 
