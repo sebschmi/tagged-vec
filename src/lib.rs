@@ -11,8 +11,11 @@ use std::{
 
 use mapped_range_bounds::MappedRangeBounds;
 
+pub use crate::index_iterator::IndexIterator;
+
 #[cfg(feature = "binary-io")]
 mod binary_io;
+mod index_iterator;
 mod mapped_range_bounds;
 #[cfg(test)]
 mod tests;
@@ -249,10 +252,7 @@ impl<Index, Value> TaggedVec<Index, Value> {
     ///
     /// The `range` specifies which subset of the entries to iterate over.
     /// Iterating over a partial range with this argument is more efficient than iterating over the whole vector and skipping the unwanted entries, because the returned iterator does not support the skip optimisation.
-    pub fn iter_indices(
-        &self,
-        range: impl RangeBounds<Index>,
-    ) -> impl DoubleEndedIterator<Item = Index> + ExactSizeIterator
+    pub fn iter_indices(&self, range: impl RangeBounds<Index>) -> IndexIterator<Index>
     where
         Index: From<usize> + Copy,
         usize: From<Index>,
@@ -269,7 +269,7 @@ impl<Index, Value> TaggedVec<Index, Value> {
             Bound::Unbounded => self.vec.len(),
         };
 
-        (start_index_inclusive..end_index_exclusive).map(Into::into)
+        IndexIterator::new(start_index_inclusive, end_index_exclusive)
     }
 
     /// Consumes the `TaggedVec`, returning an iterator over the entries.
