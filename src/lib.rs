@@ -308,4 +308,9 @@ impl<Index, Value> TaggedVec<Index, Value> {
     pub fn into_values_iter(self) -> std::vec::IntoIter<Value> {
         self.vec.into_iter()
     }
+
+    /// Removes all values from the `TaggedVec`.
+    pub fn clear(&self) {
+        self.vec.clear()
+    }
 }
