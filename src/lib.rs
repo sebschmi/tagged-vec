@@ -310,7 +310,7 @@ impl<Index, Value> TaggedVec<Index, Value> {
     }
 
     /// Removes all values from the `TaggedVec`.
-    pub fn clear(&self) {
+    pub fn clear(&mut self) {
         self.vec.clear()
     }
 }
